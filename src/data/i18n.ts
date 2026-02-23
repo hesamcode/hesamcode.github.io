@@ -85,9 +85,9 @@ export const I18N: Record<Lang, Record<string, string>> = {
     faq_a4: "در سریع‌ترین زمان ممکن پس از بررسی پیام پاسخ داده می‌شود.",
 
     // toast
-    toast_collab_below: "فرم همکاری پایین صفحه است.",
-    toast_choose_required: "لطفاً نوع پروژه و بودجه را انتخاب کن.",
-    toast_project_selected: "نوع پروژه برای همکاری انتخاب شد.",
+    toast_collab_below: "فرم همکاری رو کامل کن",
+    toast_choose_required: "لطفاً نوع پروژه و بودجه را انتخاب کن",
+    toast_project_selected: "نوع پروژه برای همکاری انتخاب شد",
 
     // message text
     msg_hello: "سلام 👋",
@@ -110,8 +110,8 @@ export const I18N: Record<Lang, Record<string, string>> = {
 
   en: {
     hero_name: "HesamCode",
-    hero_headline: "Front-end Developer",
-    hero_subtext: "Modern & responsive web development",
+    hero_headline: "Front-End Developer",
+    hero_subtext: "Building modern and responsive websites",
     cta_collab: "Request collaboration",
     footer_copy: "All rights reserved | HesamCode",
 
@@ -183,9 +183,9 @@ export const I18N: Record<Lang, Record<string, string>> = {
     faq_q4: "When will you reply?",
     faq_a4: "I’ll respond as soon as possible after reviewing your message.",
 
-    toast_collab_below: "The collaboration form is below on this page.",
-    toast_choose_required: "Please select project type and budget.",
-    toast_project_selected: "Project type selected for collaboration.",
+    toast_collab_below: "Complete the collaboration form",
+    toast_choose_required: "Please select project type and budget",
+    toast_project_selected: "Project type selected for collaboration",
 
     msg_hello: "Hello 👋",
     msg_intro: "I'm reaching out for collaboration.",

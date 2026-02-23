@@ -3,11 +3,14 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import ThemeInit from "@/components/ThemeInit";
 import PWARegister from "@/components/PWARegister";
+import { config } from "@fortawesome/fontawesome-svg-core";
+import "@fortawesome/fontawesome-svg-core/styles.css";
+config.autoAddCss = false;
 
 export const metadata: Metadata = {
   title: "HesamCode",
   description: "HesamCode — Front-end Developer Portfolio",
-  robots: { index: false, follow: false }, // چون روت فقط redirect است
+  robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
@@ -24,10 +27,12 @@ export default function RootLayout({
 }) {
   return (
     <html data-theme="dark">
+      <head>
+        {/* default; ThemeInit will update it dynamically on load + when toggled */}
+        <meta name="theme-color" content="#070a12" />
+      </head>
       <body>
-        {/* sets data-theme + meta theme-color before paint */}
         <ThemeInit />
-        {/* register SW only in production build */}
         <PWARegister />
         {children}
       </body>

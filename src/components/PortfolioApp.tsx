@@ -9,6 +9,31 @@ import { CANONICAL, CONTACT } from "@/data/constants";
 import { PROJECTS } from "@/data/projects";
 import { BUDGETS, PROJECT_TYPES } from "@/data/collab";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faCircleHalfStroke,
+  faXmark,
+  faArrowUp,
+  faChevronDown,
+  faUpRightFromSquare,
+  faCheck,
+  faSackDollar,
+  faCircleInfo,
+  faArrowLeft,
+  faArrowRight,
+  faPhone,
+  faEnvelope,
+} from "@fortawesome/free-solid-svg-icons";
+
+import {
+  faInstagram,
+  faLinkedinIn,
+  faGithub,
+  faYoutube,
+  faWhatsapp,
+  faTelegram,
+} from "@fortawesome/free-brands-svg-icons";
+
 type Tab = "about" | "projects" | "collab";
 type Filter = "all" | ProjectTypeId;
 type Theme = "dark" | "light";
@@ -22,7 +47,23 @@ function getTheme(): Theme {
   }
 }
 
-function setTheme(next: Theme) {
+function setThemeColorMeta(theme: Theme) {
+  const color = theme === "light" ? "#f2f6ff" : "#070a12";
+  let meta = document.querySelector(
+    'meta[name="theme-color"]',
+  ) as HTMLMetaElement | null;
+
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.name = "theme-color";
+    document.head.appendChild(meta);
+  }
+
+  // use setAttribute to avoid some mobile quirks
+  meta.setAttribute("content", color);
+}
+
+function applyTheme(next: Theme) {
   document.documentElement.setAttribute("data-theme", next);
 
   try {
@@ -35,21 +76,6 @@ function setTheme(next: Theme) {
   setThemeColorMeta(next);
 }
 
-function setThemeColorMeta(theme: "dark" | "light") {
-  const color = theme === "light" ? "#f2f6ff" : "#070a12";
-  let meta = document.querySelector(
-    'meta[name="theme-color"]',
-  ) as HTMLMetaElement | null;
-
-  if (!meta) {
-    meta = document.createElement("meta");
-    meta.name = "theme-color";
-    document.head.appendChild(meta);
-  }
-
-  meta.content = color;
-}
-
 function ensureHttp(url: string) {
   const u = (url || "").trim();
   if (!u) return "#";
@@ -59,7 +85,7 @@ function ensureHttp(url: string) {
 
 export default function PortfolioApp({ lang }: { lang: Lang }) {
   const dir: "rtl" | "ltr" = lang === "fa" ? "rtl" : "ltr";
-  const arrow = lang === "fa" ? "🡐" : "🡒";
+  const arrowIcon = lang === "fa" ? faArrowLeft : faArrowRight;
 
   const [tab, setTab] = useState<Tab>("about");
   const [filter, setFilter] = useState<Filter>("all");
@@ -94,6 +120,12 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
     }
   }, [lang]);
 
+  // ensure theme-color is synced on mount (even if ThemeInit exists)
+  useEffect(() => {
+    applyTheme(getTheme());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // toast helpers
   function showToast(text: string) {
     setToastText(text);
@@ -118,7 +150,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
 
   function toggleTheme() {
     const current = getTheme();
-    setTheme(current === "light" ? "dark" : "light");
+    applyTheme(current === "light" ? "dark" : "light");
   }
 
   function focusCollab() {
@@ -170,19 +202,21 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
 
   function openTelegram() {
     const msg = encodeURIComponent(buildMessageText());
-    const url = `https://t.me/share/url?url=${encodeURIComponent(CANONICAL[lang])}&text=${msg}`;
+    const url = `https://t.me/share/url?url=${encodeURIComponent(
+      CANONICAL[lang],
+    )}&text=${msg}`;
     window.open(url, "_blank", "noopener");
   }
 
   function scrollTop() {
-    // Always works (whether scrolling is on window or container)
+    // window
     try {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
       window.scrollTo(0, 0);
     }
 
-    // If container has its own scrolling
+    // container scroll
     const el = appRef.current;
     if (el) {
       try {
@@ -211,9 +245,8 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
   const btnPrimary =
     "h-11 px-4 rounded-xl border border-[var(--primary)] bg-[var(--primary)] text-white font-bold inline-flex items-center justify-center gap-2 transition active:scale-95";
 
-  // Social brand buttons (NO icons, full name)
   const socialBtnBase =
-    "h-11 px-4 rounded-xl border font-bold inline-flex items-center justify-center transition active:scale-95 w-full";
+    "h-11 px-4 rounded-xl border font-bold inline-flex items-center justify-center gap-2 transition active:scale-95 w-full";
 
   const socialGrid = "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3";
 
@@ -240,12 +273,13 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
             className={[
               "size-11 rounded-xl border border-[var(--border)]",
               "grid place-items-center",
-              "bg-[var(--primary-soft)] text-[var(--primary)] font-extrabold",
+              "bg-[var(--primary-soft)] text-[var(--primary)]",
             ].join(" ")}
             aria-hidden="true"
           >
-            i
+            <FontAwesomeIcon icon={faCircleInfo} />
           </div>
+
           <p className="text-xs font-extrabold text-[var(--text)]">
             {toastText}
           </p>
@@ -255,9 +289,9 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
           className={btnGlass}
           type="button"
           onClick={hideToast}
-          aria-label="Close toast"
+          aria-label={t(lang, "close")}
         >
-          ✕
+          <FontAwesomeIcon icon={faXmark} />
         </button>
       </div>
 
@@ -273,16 +307,17 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
       >
         <div className="absolute left-3 right-3 top-3 flex items-center justify-between gap-3">
           {lang === "fa" ? (
-            <Link className={btnGlass} href="/en" aria-label="English version">
+            <Link className={btnGlass} href="/en/" aria-label="English version">
               EN
             </Link>
           ) : (
-            <Link className={btnGlass} href="/fa" aria-label="نسخه فارسی">
+            <Link className={btnGlass} href="/fa/" aria-label="نسخه فارسی">
               FA
             </Link>
           )}
 
           <button className={btnGlass} type="button" onClick={toggleTheme}>
+            <FontAwesomeIcon icon={faCircleHalfStroke} />
             {t(lang, "toggle_theme")}
           </button>
         </div>
@@ -291,7 +326,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
           <img
             src="/icons/hesamcode.png"
             alt="HesamCode"
-            className="size-28 sm:size-32 rounded-full object-cover"
+            className="bg-white border-2 border-[var(--primary)] size-28 sm:size-32 rounded-full object-cover"
             loading="eager"
           />
 
@@ -318,7 +353,8 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
             type="button"
             onClick={onHeaderCta}
           >
-            {t(lang, "cta_collab")} <span aria-hidden="true">{arrow}</span>
+            {t(lang, "cta_collab")}
+            <FontAwesomeIcon icon={arrowIcon} />
           </button>
         </div>
       </header>
@@ -373,7 +409,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
               </h2>
               <p
                 className={[
-                  "mt-3 text-xs sm:text-sm font-bold leading-7",
+                  "mt-3 text-xs sm:text-sm font-bold leading-5",
                   textMuted,
                 ].join(" ")}
               >
@@ -392,19 +428,21 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
               </div>
 
               <div className="mt-3 grid grid-cols-2 sm:grid-cols-2 gap-3">
-                {["HTML/CSS", "JavaScript", "React", "Next.js"].map((x) => (
-                  <div
-                    key={x}
-                    className={[
-                      card,
-                      "h-11 px-3",
-                      elev2,
-                      "flex items-center gap-3 font-bold",
-                    ].join(" ")}
-                  >
-                    <span className="text-[var(--text)]">{x}</span>
-                  </div>
-                ))}
+                {["HTML/CSS", "JavaScript", "React", "Tailwind CSS"].map(
+                  (x) => (
+                    <div
+                      key={x}
+                      className={[
+                        card,
+                        "h-11 px-3",
+                        elev2,
+                        "flex items-center gap-3 font-bold",
+                      ].join(" ")}
+                    >
+                      <span className="text-[var(--text)]">{x}</span>
+                    </div>
+                  ),
+                )}
               </div>
             </div>
 
@@ -418,7 +456,6 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                 </span>
               </div>
 
-              {/* Contact methods — localized labels, brand colors */}
               <div className={"mt-3 " + socialGrid}>
                 <a
                   className={socialBtnBase}
@@ -431,6 +468,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                   target="_blank"
                   rel="noopener"
                 >
+                  <FontAwesomeIcon icon={faInstagram} />
                   {t(lang, "contact_instagram")}
                 </a>
 
@@ -445,6 +483,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                   target="_blank"
                   rel="noopener"
                 >
+                  <FontAwesomeIcon icon={faLinkedinIn} />
                   {t(lang, "contact_linkedin")}
                 </a>
 
@@ -459,6 +498,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                   target="_blank"
                   rel="noopener"
                 >
+                  <FontAwesomeIcon icon={faGithub} />
                   {t(lang, "contact_github")}
                 </a>
 
@@ -473,6 +513,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                   target="_blank"
                   rel="noopener"
                 >
+                  <FontAwesomeIcon icon={faYoutube} />
                   {t(lang, "contact_youtube")}
                 </a>
 
@@ -487,6 +528,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                   target="_blank"
                   rel="noopener"
                 >
+                  <FontAwesomeIcon icon={faWhatsapp} />
                   {t(lang, "contact_whatsapp")}
                 </a>
 
@@ -501,6 +543,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                   target="_blank"
                   rel="noopener"
                 >
+                  <FontAwesomeIcon icon={faTelegram} />
                   {t(lang, "contact_telegram")}
                 </a>
 
@@ -513,6 +556,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                   }}
                   href="tel:09931231249"
                 >
+                  <FontAwesomeIcon icon={faPhone} />
                   {t(lang, "contact_call")}
                 </a>
 
@@ -525,6 +569,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                   }}
                   href="mailto:hesamcode.com@gmail.com"
                 >
+                  <FontAwesomeIcon icon={faEnvelope} />
                   {t(lang, "contact_email")}
                 </a>
               </div>
@@ -545,14 +590,13 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                 </span>
               </div>
 
-              <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {(
                   [
                     ["all", t(lang, "filter_all")],
                     ["landing", t(lang, "filter_landing")],
                     ["dashboard", t(lang, "filter_dashboard")],
                     ["shop", t(lang, "filter_shop")],
-                    ["ui", t(lang, "filter_ui")],
                   ] as Array<[Filter, string]>
                 ).map(([id, label]) => {
                   const selected = filter === id;
@@ -595,11 +639,20 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                     className={[card, glass1, "overflow-hidden"].join(" ")}
                   >
                     {/* Placeholder cover (until images available) */}
-                    <div className="h-56 w-full border-b border-[var(--border)] bg-[var(--elev-2)] grid place-items-center">
-                      <span className="text-xs font-bold text-[var(--muted)]">
-                        {t(lang, "project_image_alt_prefix")} {p.title[lang]}
-                      </span>
-                    </div>
+                    {p.cover ? (
+                      <img
+                        src={p.cover}
+                        alt={`${t(lang, "project_image_alt_prefix")} ${p.title[lang]}`}
+                        className="h-70 w-full object-cover border-b border-[var(--border)]"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="h-56 w-full border-b border-[var(--border)] bg-[var(--elev-2)] grid place-items-center">
+                        <span className="text-xs font-bold text-[var(--muted)]">
+                          {t(lang, "project_image_alt_prefix")} {p.title[lang]}
+                        </span>
+                      </div>
+                    )}
 
                     <div className="p-3 sm:p-4 flex flex-col gap-3">
                       <h3 className="text-sm sm:text-base font-extrabold text-[var(--text)]">
@@ -634,6 +687,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                           rel="noopener"
                         >
                           {t(lang, "view")}
+                          <FontAwesomeIcon icon={faUpRightFromSquare} />
                         </a>
 
                         <button
@@ -645,8 +699,8 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                             focusCollab();
                           }}
                         >
-                          {t(lang, "request_similar")}{" "}
-                          <span aria-hidden="true">{arrow}</span>
+                          {t(lang, "request_similar")}
+                          <FontAwesomeIcon icon={arrowIcon} />
                         </button>
                       </div>
                     </div>
@@ -718,6 +772,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                   {PROJECT_TYPES.map((pt) => {
                     const selected =
                       selectedProjectType === (pt.id as ProjectTypeId);
+
                     return (
                       <button
                         key={pt.id}
@@ -736,13 +791,17 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                         <span className="text-[var(--text)] truncate">
                           {pt.label[lang]}
                         </span>
+
                         <span
                           className={[
                             "text-xs font-extrabold",
-                            selected ? "text-[var(--primary)]" : textMuted,
+                            selected
+                              ? "text-[var(--primary)]"
+                              : "text-transparent",
                           ].join(" ")}
+                          aria-hidden="true"
                         >
-                          {selected ? "✓" : ""}
+                          <FontAwesomeIcon icon={faCheck} />
                         </span>
                       </button>
                     );
@@ -764,6 +823,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                 <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {BUDGETS.map((b) => {
                     const selected = selectedBudgetId === b.id;
+
                     return (
                       <button
                         key={b.id}
@@ -780,13 +840,17 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                         <span className="text-[var(--text)] truncate">
                           {b.label[lang]}
                         </span>
+
                         <span
                           className={[
                             "text-xs font-extrabold",
-                            selected ? "text-[var(--primary)]" : textMuted,
+                            selected
+                              ? "text-[var(--primary)]"
+                              : "text-transparent",
                           ].join(" ")}
+                          aria-hidden="true"
                         >
-                          {selected ? "✓" : ""}
+                          <FontAwesomeIcon icon={faSackDollar} />
                         </span>
                       </button>
                     );
@@ -851,18 +915,20 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
-                    className="h-11 rounded-xl font-bold text-white bg-emerald-500 border border-emerald-400 transition active:scale-95"
+                    className="h-11 rounded-xl font-bold text-white bg-emerald-500 border border-emerald-400 transition active:scale-95 inline-flex items-center justify-center gap-2"
                     type="button"
                     onClick={openWhatsapp}
                   >
+                    <FontAwesomeIcon icon={faWhatsapp} />
                     {t(lang, "whatsapp")}
                   </button>
 
                   <button
-                    className="h-11 rounded-xl font-bold text-white bg-sky-600 border border-sky-500 transition active:scale-95"
+                    className="h-11 rounded-xl font-bold text-white bg-sky-600 border border-sky-500 transition active:scale-95 inline-flex items-center justify-center gap-2"
                     type="button"
                     onClick={openTelegram}
                   >
+                    <FontAwesomeIcon icon={faTelegram} />
                     {t(lang, "telegram")}
                   </button>
                 </div>
@@ -892,85 +958,35 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
         </div>
 
         <div className="mt-3 flex flex-col gap-3">
-          <details className={[card, "bg-[var(--elev-1)]", "p-3"].join(" ")}>
-            <summary className="cursor-pointer list-none flex items-center justify-between gap-3 font-extrabold text-[var(--text)]">
-              <span>{t(lang, "faq_q1")}</span>
-              <span
-                className={["text-sm font-bold", textMuted].join(" ")}
-                aria-hidden="true"
-              >
-                🡫
-              </span>
-            </summary>
-            <p
-              className={[
-                "mt-2 text-xs sm:text-sm font-bold leading-7",
-                textMuted,
-              ].join(" ")}
+          {(["1", "2", "3", "4"] as const).map((n) => (
+            <details
+              key={n}
+              className={[card, "bg-[var(--elev-1)]", "p-3", "group"].join(" ")}
             >
-              {t(lang, "faq_a1")}
-            </p>
-          </details>
+              <summary className="cursor-pointer list-none flex items-center justify-between gap-3 font-extrabold text-[var(--text)]">
+                <span>{t(lang, `faq_q${n}` as any)}</span>
 
-          <details className={[card, "bg-[var(--elev-1)]", "p-3"].join(" ")}>
-            <summary className="cursor-pointer list-none flex items-center justify-between gap-3 font-extrabold text-[var(--text)]">
-              <span>{t(lang, "faq_q2")}</span>
-              <span
-                className={["text-sm font-bold", textMuted].join(" ")}
-                aria-hidden="true"
+                <span
+                  className={[
+                    "text-sm font-bold transition-transform duration-200",
+                    "group-open:rotate-180",
+                    textMuted,
+                  ].join(" ")}
+                  aria-hidden="true"
+                >
+                  <FontAwesomeIcon icon={faChevronDown} />
+                </span>
+              </summary>
+              <p
+                className={[
+                  "mt-2 text-xs sm:text-sm font-bold leading-7",
+                  textMuted,
+                ].join(" ")}
               >
-                🡫
-              </span>
-            </summary>
-            <p
-              className={[
-                "mt-2 text-xs sm:text-sm font-bold leading-7",
-                textMuted,
-              ].join(" ")}
-            >
-              {t(lang, "faq_a2")}
-            </p>
-          </details>
-
-          <details className={[card, "bg-[var(--elev-1)]", "p-3"].join(" ")}>
-            <summary className="cursor-pointer list-none flex items-center justify-between gap-3 font-extrabold text-[var(--text)]">
-              <span>{t(lang, "faq_q3")}</span>
-              <span
-                className={["text-sm font-bold", textMuted].join(" ")}
-                aria-hidden="true"
-              >
-                🡫
-              </span>
-            </summary>
-            <p
-              className={[
-                "mt-2 text-xs sm:text-sm font-bold leading-7",
-                textMuted,
-              ].join(" ")}
-            >
-              {t(lang, "faq_a3")}
-            </p>
-          </details>
-
-          <details className={[card, "bg-[var(--elev-1)]", "p-3"].join(" ")}>
-            <summary className="cursor-pointer list-none flex items-center justify-between gap-3 font-extrabold text-[var(--text)]">
-              <span>{t(lang, "faq_q4")}</span>
-              <span
-                className={["text-sm font-bold", textMuted].join(" ")}
-                aria-hidden="true"
-              >
-                🡫
-              </span>
-            </summary>
-            <p
-              className={[
-                "mt-2 text-xs sm:text-sm font-bold leading-7",
-                textMuted,
-              ].join(" ")}
-            >
-              {t(lang, "faq_a4")}
-            </p>
-          </details>
+                {t(lang, `faq_a${n}` as any)}
+              </p>
+            </details>
+          ))}
         </div>
       </section>
 
@@ -993,7 +1009,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
               onClick={scrollTop}
               aria-label={t(lang, "back_to_top")}
             >
-              🡑
+              <FontAwesomeIcon icon={faArrowUp} />
             </button>
           </div>
 
@@ -1004,10 +1020,14 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
 
             <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
               <a className={btnSoft} href="tel:09931231249">
+                <FontAwesomeIcon icon={faPhone} />
                 {t(lang, "call")}
               </a>
+
               <a
-                className={btnGlass}
+                className={
+                  btnGlass + " inline-flex items-center justify-center gap-2"
+                }
                 style={{
                   background: "rgba(16, 185, 129, 0.14)",
                   borderColor: "rgba(16, 185, 129, 0.25)",
@@ -1017,10 +1037,14 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                 target="_blank"
                 rel="noopener"
               >
+                <FontAwesomeIcon icon={faWhatsapp} />
                 {t(lang, "whatsapp")}
               </a>
+
               <a
-                className={btnGlass}
+                className={
+                  btnGlass + " inline-flex items-center justify-center gap-2"
+                }
                 style={{
                   background: "rgba(0, 136, 204, 0.14)",
                   borderColor: "rgba(0, 136, 204, 0.25)",
@@ -1030,6 +1054,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                 target="_blank"
                 rel="noopener"
               >
+                <FontAwesomeIcon icon={faTelegram} />
                 {t(lang, "telegram")}
               </a>
             </div>
