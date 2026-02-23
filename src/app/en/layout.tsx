@@ -5,7 +5,7 @@ import HtmlAttrs from "@/components/HtmlAttrs";
 const SITE = "https://hesamcode.github.io";
 
 export const metadata: Metadata = {
-  title: "HesamCode | Front-end Developer",
+  title: "HesamCode | Front-End Developer",
   description:
     "HesamCode - Front-end Developer. Building modern and responsive websites. View projects, learn about me, and request collaboration.",
   authors: [{ name: "HesamCode" }],
