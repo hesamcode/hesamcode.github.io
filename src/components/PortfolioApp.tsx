@@ -402,7 +402,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
 
       {!isStandaloneMode && (
         <section className={["mt-3", card, glass1, "p-3 sm:p-4"].join(" ")}>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex flex-row items-center justify-between gap-3">
             <p className="text-sm sm:text-base font-extrabold text-[var(--text)]">
               {t(lang, "pwa_ready")}
             </p>
@@ -410,7 +410,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
             <button
               className={[
                 btnPrimary,
-                "w-full sm:w-auto",
+                "w-auto",
                 installing ? "opacity-70 cursor-not-allowed" : "",
               ].join(" ")}
               type="button"
@@ -418,7 +418,9 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
               disabled={installing}
             >
               <FontAwesomeIcon icon={faDownload} />
-              {installing ? t(lang, "pwa_installing") : t(lang, "pwa_install_btn")}
+              {installing
+                ? t(lang, "pwa_installing")
+                : t(lang, "pwa_install_btn")}
             </button>
           </div>
         </section>
