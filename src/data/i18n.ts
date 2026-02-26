@@ -8,6 +8,9 @@ export const I18N: Record<Lang, Record<string, string>> = {
     hero_headline: "توسعه دهنده فرانت اند",
     hero_subtext: "ساخت وبسایت های مدرن و واکنش گرا",
     cta_collab: "درخواست همکاری",
+    pwa_ready: "وب اپ آماده نصب است",
+    pwa_install_btn: "نصب وب اپ",
+    pwa_installing: "در حال نصب...",
     footer_copy: "تمامی حقوق محفوظ است | HesamCode",
 
     // tabs
@@ -88,6 +91,12 @@ export const I18N: Record<Lang, Record<string, string>> = {
     toast_collab_below: "فرم همکاری رو کامل کن",
     toast_choose_required: "لطفاً نوع پروژه و بودجه را انتخاب کن",
     toast_project_selected: "نوع پروژه برای همکاری انتخاب شد",
+    toast_pwa_unavailable:
+      "گزینه نصب در حال حاضر فعال نیست. از منوی مرورگر گزینه Add to Home Screen را انتخاب کن.",
+    toast_pwa_install_started: "درخواست نصب باز شد",
+    toast_pwa_install_cancelled: "نصب لغو شد",
+    toast_pwa_install_error: "اجرای نصب با خطا مواجه شد",
+    toast_pwa_installed: "وب اپ با موفقیت نصب شد",
 
     // message text
     msg_hello: "سلام 👋",
@@ -106,6 +115,7 @@ export const I18N: Record<Lang, Record<string, string>> = {
 
     // misc
     toggle_theme: "تغییر تم",
+    close: "بستن",
   },
 
   en: {
@@ -113,6 +123,9 @@ export const I18N: Record<Lang, Record<string, string>> = {
     hero_headline: "Front-End Developer",
     hero_subtext: "Building modern and responsive websites",
     cta_collab: "Request collaboration",
+    pwa_ready: "Web app is ready to install",
+    pwa_install_btn: "Install app",
+    pwa_installing: "Installing...",
     footer_copy: "All rights reserved | HesamCode",
 
     tab_about: "About",
@@ -186,6 +199,12 @@ export const I18N: Record<Lang, Record<string, string>> = {
     toast_collab_below: "Complete the collaboration form",
     toast_choose_required: "Please select project type and budget",
     toast_project_selected: "Project type selected for collaboration",
+    toast_pwa_unavailable:
+      "Install is not available right now. Use browser menu and choose Add to Home Screen.",
+    toast_pwa_install_started: "Install prompt opened",
+    toast_pwa_install_cancelled: "Install cancelled",
+    toast_pwa_install_error: "Failed to start installation",
+    toast_pwa_installed: "Web app installed successfully",
 
     msg_hello: "Hello 👋",
     msg_intro: "I'm reaching out for collaboration.",
@@ -201,6 +220,7 @@ export const I18N: Record<Lang, Record<string, string>> = {
     call: "Call",
 
     toggle_theme: "Toggle theme",
+    close: "Close",
   },
 };
 

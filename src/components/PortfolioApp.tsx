@@ -23,6 +23,7 @@ import {
   faArrowRight,
   faPhone,
   faEnvelope,
+  faDownload,
 } from "@fortawesome/free-solid-svg-icons";
 
 import {
@@ -37,6 +38,11 @@ import {
 type Tab = "about" | "projects" | "collab";
 type Filter = "all" | ProjectTypeId;
 type Theme = "dark" | "light";
+type FaqId = "1" | "2" | "3" | "4";
+type DeferredPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+};
 
 function getTheme(): Theme {
   try {
@@ -83,6 +89,14 @@ function ensureHttp(url: string) {
   return `https://${u}`;
 }
 
+function faqQuestionKey(id: FaqId): `faq_q${FaqId}` {
+  return `faq_q${id}`;
+}
+
+function faqAnswerKey(id: FaqId): `faq_a${FaqId}` {
+  return `faq_a${id}`;
+}
+
 export default function PortfolioApp({ lang }: { lang: Lang }) {
   const dir: "rtl" | "ltr" = lang === "fa" ? "rtl" : "ltr";
   const arrowIcon = lang === "fa" ? faArrowLeft : faArrowRight;
@@ -101,6 +115,10 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
   const [toastText, setToastText] = useState("");
   const [toastOpen, setToastOpen] = useState(false);
   const toastTimer = useRef<number | null>(null);
+  const [deferredInstallPrompt, setDeferredInstallPrompt] =
+    useState<DeferredPromptEvent | null>(null);
+  const [isStandaloneMode, setIsStandaloneMode] = useState(false);
+  const [installing, setInstalling] = useState(false);
 
   // refs
   const appRef = useRef<HTMLDivElement | null>(null);
@@ -123,7 +141,6 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
   // ensure theme-color is synced on mount (even if ThemeInit exists)
   useEffect(() => {
     applyTheme(getTheme());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // toast helpers
@@ -139,6 +156,69 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
     setToastOpen(false);
     if (toastTimer.current) window.clearTimeout(toastTimer.current);
   }
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(display-mode: standalone)");
+    const getIsStandalone = () => {
+      const iosStandalone =
+        (
+          window.navigator as Navigator & {
+            standalone?: boolean;
+          }
+        ).standalone === true;
+
+      return mediaQuery.matches || iosStandalone;
+    };
+
+    const syncStandaloneState = () => {
+      setIsStandaloneMode(getIsStandalone());
+    };
+
+    syncStandaloneState();
+
+    const onBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setDeferredInstallPrompt(event as DeferredPromptEvent);
+    };
+
+    const onAppInstalled = () => {
+      setDeferredInstallPrompt(null);
+      setInstalling(false);
+      syncStandaloneState();
+      setToastText(t(lang, "toast_pwa_installed"));
+      setToastOpen(true);
+      if (toastTimer.current) window.clearTimeout(toastTimer.current);
+      toastTimer.current = window.setTimeout(() => setToastOpen(false), 2600);
+    };
+
+    const onStandaloneModeChange = () => {
+      syncStandaloneState();
+    };
+
+    window.addEventListener(
+      "beforeinstallprompt",
+      onBeforeInstallPrompt as EventListener,
+    );
+    window.addEventListener("appinstalled", onAppInstalled);
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", onStandaloneModeChange);
+    } else {
+      mediaQuery.addListener(onStandaloneModeChange);
+    }
+
+    return () => {
+      window.removeEventListener(
+        "beforeinstallprompt",
+        onBeforeInstallPrompt as EventListener,
+      );
+      window.removeEventListener("appinstalled", onAppInstalled);
+      if (typeof mediaQuery.removeEventListener === "function") {
+        mediaQuery.removeEventListener("change", onStandaloneModeChange);
+      } else {
+        mediaQuery.removeListener(onStandaloneModeChange);
+      }
+    };
+  }, [lang]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -163,6 +243,31 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
   function onHeaderCta() {
     showToast(t(lang, "toast_collab_below"));
     focusCollab();
+  }
+
+  async function onInstallClick() {
+    if (!deferredInstallPrompt) {
+      showToast(t(lang, "toast_pwa_unavailable"));
+      return;
+    }
+
+    setInstalling(true);
+
+    try {
+      await deferredInstallPrompt.prompt();
+      const choice = await deferredInstallPrompt.userChoice;
+
+      if (choice.outcome === "accepted") {
+        showToast(t(lang, "toast_pwa_install_started"));
+      } else {
+        showToast(t(lang, "toast_pwa_install_cancelled"));
+      }
+    } catch {
+      showToast(t(lang, "toast_pwa_install_error"));
+    } finally {
+      setInstalling(false);
+      setDeferredInstallPrompt(null);
+    }
   }
 
   function labelProjectType(typeId: ProjectTypeId) {
@@ -295,6 +400,30 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
         </button>
       </div>
 
+      {!isStandaloneMode && (
+        <section className={["mt-3", card, glass1, "p-3 sm:p-4"].join(" ")}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <p className="text-sm sm:text-base font-extrabold text-[var(--text)]">
+              {t(lang, "pwa_ready")}
+            </p>
+
+            <button
+              className={[
+                btnPrimary,
+                "w-full sm:w-auto",
+                installing ? "opacity-70 cursor-not-allowed" : "",
+              ].join(" ")}
+              type="button"
+              onClick={onInstallClick}
+              disabled={installing}
+            >
+              <FontAwesomeIcon icon={faDownload} />
+              {installing ? t(lang, "pwa_installing") : t(lang, "pwa_install_btn")}
+            </button>
+          </div>
+        </section>
+      )}
+
       {/* Header */}
       <header
         className={[
@@ -383,6 +512,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
             <button
               key={id}
               type="button"
+              role="tab"
               className={[
                 "w-full h-11 rounded-xl border font-bold transition active:scale-95",
                 selected
@@ -643,7 +773,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                       <img
                         src={p.cover}
                         alt={`${t(lang, "project_image_alt_prefix")} ${p.title[lang]}`}
-                        className="h-70 w-full object-cover border-b border-[var(--border)]"
+                        className="w-full h-auto object-cover border-b border-[var(--border)]"
                         loading="lazy"
                       />
                     ) : (
@@ -964,7 +1094,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
               className={[card, "bg-[var(--elev-1)]", "p-3", "group"].join(" ")}
             >
               <summary className="cursor-pointer list-none flex items-center justify-between gap-3 font-extrabold text-[var(--text)]">
-                <span>{t(lang, `faq_q${n}` as any)}</span>
+                <span>{t(lang, faqQuestionKey(n))}</span>
 
                 <span
                   className={[
@@ -983,7 +1113,7 @@ export default function PortfolioApp({ lang }: { lang: Lang }) {
                   textMuted,
                 ].join(" ")}
               >
-                {t(lang, `faq_a${n}` as any)}
+                {t(lang, faqAnswerKey(n))}
               </p>
             </details>
           ))}
